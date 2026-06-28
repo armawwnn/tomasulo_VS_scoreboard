@@ -1,0 +1,24 @@
+{
+    "functional_units": {
+        "Integer": {"rs": 3, "fu": 2},
+        "Mult":    {"rs": 2, "fu": 2},
+        "Divide":  {"rs": 1, "fu": 1},
+        "Memory":  {"rs": 2, "fu": 1}
+    },
+    "latencies": {
+        "ADD":   2,
+        "SUB":   2,
+        "MUL":  10,
+        "DIV":  40,
+        "LOAD":  2,
+        "STORE": 2
+    },
+    "fu_map": {
+        "ADD":   "Integer",
+        "SUB":   "Integer",
+        "MUL":   "Mult",
+        "DIV":   "Divide",
+        "LOAD":  "Memory",
+        "STORE": "Memory"
+    }
+}
