@@ -138,6 +138,6 @@ def run_scoreboard(instructions, func_unit):
             reg_result, build_fu_rows_scoreboard(fu_instances)
         )
 
-    print(f"\n✅  Simulation finished in {cycle} cycle(s).\n")
+    print(f"\n Simulation finished in {cycle} cycle(s).\n")
     return state["timings"]
 

@@ -29,5 +29,3 @@ Thumbs.db
 .coverage
 htmlcov/
 
-#
-compare_func.py

@@ -293,7 +293,7 @@ def run_tomasulo(instructions, func_unit):
 
         _print_state(cycle, instructions, state, rs_slots, fu_slots, rat)
 
-    print(f"\n✅  Simulation finished in {cycle} cycle(s).\n")
+    print(f"\n  Simulation finished in {cycle} cycle(s).\n")
     return state["timings"]
 
 

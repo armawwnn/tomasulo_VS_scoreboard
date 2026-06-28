@@ -1,24 +1,89 @@
 # Out-of-Order Instruction Scheduling Simulator
 
-A cycle-accurate simulator for two classic dynamic scheduling mechanisms:
-**Scoreboarding** (CDC-6600) and **Tomasulo's Algorithm** (IBM 360/91).
-
-Built as project for *Advanced Computer Architecture*
+Cycle-accurate simulator for **Scoreboarding** and **Tomasulo's Algorithm**.
 
 ---
 
-## Features
+## Project Structure
 
-- **Scoreboard** — detects and stalls on RAW, WAR, and WAW hazards; maintains
-  the Functional Unit Status Table and Register Result Table per cycle.
-- **Tomasulo** — eliminates WAR and WAW via register renaming (RAT); models
-  separate RS and FU counts per unit type; enforces the CDB N+1 timing rule.
-- **Compare mode** — runs both algorithms on the same program and prints a
-  side-by-side timing table, speedup ratio, and hazard analysis.
-- **Assembly file parser** — reads a plain `.asm` file; hardware config is a
-  JSON file, so no code changes are needed to try different programs.
-- **Cycle-by-cycle output** — every clock cycle prints the Instruction Status
-  Table, FU / RS Table, and Register Result / RAT.
+```
+.
+├── main.py              # CLI entry point
+├── pipeline_common.py   # Shared helpers (FU lifecycle, sim state, display)
+├── scoreboard.py        # Scoreboard algorithm
+├── tomasulo.py          # Tomasulo's algorithm
+├── asm_parser.py        # Assembly + JSON config loader
+├── compare_func.py      # Side-by-side comparison report
+├── helper.py            # Utility functions
+├── output.py            # Output formatting
+├── asm/                 # Assembly program files
+└── conf/                # JSON hardware config files
+```
 
 ---
 
+## Installation
+
+```bash
+pip install tabulate
+```
+
+---
+
+## Usage
+
+```bash
+python main.py --config conf/config.json --asm asm/program.asm --mode scoreboard
+python main.py --config conf/config.json --asm asm/program.asm --mode tomasulo
+python main.py --config conf/config.json --asm asm/program.asm --mode compare
+```
+
+---
+
+## Input Format
+
+**Assembly file** (`asm/program.asm`):
+```asm
+# Comments start with #
+LOAD  R1, 0(R2)
+MUL   R3, R1, R4
+ADD   R5, R3, R6
+SUB   R7, R8, R9
+ADD   R10, R7, R1
+STORE R10, 4(R2)
+```
+
+**Config file** (`conf/config.json`):
+```json
+{
+    "functional_units": {
+        "Integer": {"rs": 3, "fu": 2},
+        "Mult":    {"rs": 2, "fu": 2},
+        "Divide":  {"rs": 1, "fu": 1},
+        "Memory":  {"rs": 2, "fu": 1}
+    },
+    "latencies": {
+        "ADD": 2, "SUB": 2, "MUL": 10, "DIV": 40, "LOAD": 2, "STORE": 2
+    },
+    "fu_map": {
+        "ADD": "Integer", "SUB": "Integer",
+        "MUL": "Mult",    "DIV": "Divide",
+        "LOAD": "Memory", "STORE": "Memory"
+    }
+}
+```
+
+> `functional_units` also accepts a simple format: `"Integer": 2`
+> (sets both RS and FU count to 2).
+
+---
+
+## Algorithms
+
+| | Scoreboard | Tomasulo |
+|---|---|---|
+| WAW | Issue stall | Eliminated (register rename) |
+| WAR | Write-Back stall | Eliminated (Vj/Vk captured at Issue) |
+| RAW | Read Operands stall | Wait for CDB broadcast |
+| Structural | No free FU → stall | No free RS → stall |
+| Stages | Write → Execute → Read → Issue | Write → Execute → Issue |
