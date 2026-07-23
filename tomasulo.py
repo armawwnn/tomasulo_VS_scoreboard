@@ -1,3 +1,4 @@
+#imports
 from pipeline_common import (
     make_fu, reset_fu,
     make_sim_state, all_done,
@@ -6,8 +7,8 @@ from pipeline_common import (
 )
 
 
-#config normalisation 
-
+#config normalisation  for tomasulo algo
+# {"Integer":2} -> {"Integer":{"rs":2,"fu":2}}
 def _normalise(func_unit):
     result = {}
     for fu_type, spec in func_unit.items():
@@ -19,7 +20,7 @@ def _normalise(func_unit):
 
 
 # slot builders 
-
+#hw={"Integer":{"rs":2,"fu":1}} -> RS_Integer1, RS_Integer2
 def _build_rs_slots(hw):
     slots = []
     for fu_type, counts in hw.items():
@@ -32,6 +33,7 @@ def _build_rs_slots(hw):
     return slots
 
 
+#hw={"Integer":{"rs":2,"fu":1}} -> FU_Integer1
 def _build_fu_slots(hw):
     slots = []
     for fu_type, counts in hw.items():
@@ -63,7 +65,7 @@ def _free_fu(fu_slots, fu_type):
 
 
 # register file 
-
+#R1,R2,R3 - > {"R1":"R1","R2":"R2","R3":"R3"}
 def _make_reg_file(instructions):
     regs = set()
     for inst in instructions:
@@ -117,9 +119,9 @@ def _reset_rs(rs):
     rs["fu_name"]   = None
 
 
-
+#after broadcast clean rs
 def _broadcast_cdb(done_rs, rs_slots, rat, state):
-    result = done_rs["name"]   # symbolic value — just the RS name token
+    result = done_rs["name"]   # symbolic value —  test debug
 
     for rs in rs_slots:
         if not rs["busy"] or rs["inst_idx"] is None:
@@ -141,7 +143,7 @@ def _broadcast_cdb(done_rs, rs_slots, rat, state):
         del rat[dest]
 
 
-
+#for show i table
 def _rs_rows(rs_slots):
     return [
         {
@@ -158,14 +160,14 @@ def _rs_rows(rs_slots):
         for rs in rs_slots if rs["busy"]
     ]
 
-
+#show table
 def _fu_rows(fu_slots):
     return [
         {"FU": fu["name"], "Busy": "Yes", "RS": fu["rs_name"] or ""}
         for fu in fu_slots if fu["busy"]
     ]
 
-
+#print
 def _print_state(cycle, instructions, state, rs_slots, fu_slots, rat):
     print(f"\n{'='*30} CYCLE {cycle} {'='*30}")
 
@@ -186,8 +188,7 @@ def _print_state(cycle, instructions, state, rs_slots, fu_slots, rat):
 
     print("=" * 71)
 
-
-
+#if exe = done -> broadcast on cdb free rs
 def _stage_write_back(rs_slots, state, rat, cycle):
     for rs in rs_slots:
         if not rs["busy"] or rs["inst_idx"] is None:
@@ -200,6 +201,7 @@ def _stage_write_back(rs_slots, state, rat, cycle):
             _reset_rs(rs)
 
 
+#if readdone = true and find free fu and start exe
 def _stage_execute(rs_slots, fu_slots, state, cycle):
 
     # step 1:
@@ -241,7 +243,7 @@ def _stage_execute(rs_slots, fu_slots, state, cycle):
                 fu["rs_name"]  = None
             rs["fu_name"] = None
 
-
+#if free rs -> issu
 def _stage_issue(instructions, next_issue_idx, rs_slots, state, rat, reg_file, cycle):
     if next_issue_idx >= len(instructions):
         return next_issue_idx

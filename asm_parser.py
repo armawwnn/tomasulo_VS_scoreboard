@@ -1,13 +1,20 @@
 import json
 import re
 
+#read conf file
+# conf/conf.json -> 
 
+#"functional_units": {...}, "latencies": {...}, 
+#"fu_map": {...}}
 
 def load_config(path):
     with open(path, "r") as f:
         return json.load(f)
 
 
+
+#tokenizer
+# add R1,R2,R3 --> ["ADD", "R1","R2","R3"]
 
 def load_assembly(path):
     instructions = []
@@ -22,7 +29,9 @@ def load_assembly(path):
                 instructions.append(tokens)
     return instructions
 
-
+# out of 2 above func tokens + conf->
+# {"op":"ADD","dest":"R1","src1":"R2","src2":"R3",
+#"latency":2,"fu_type":"Integer"}
 
 def assign_hardware_config(raw_instructions, config):
     latencies = {k.upper(): v for k, v in config["latencies"].items()}
